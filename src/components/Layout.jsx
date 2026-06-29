@@ -1,16 +1,35 @@
 import { useEffect } from "react";
-import { Link, NavLink } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import { useAtomValue, useSetAtom } from "jotai";
-import { bootstrapSessionAtom, currentUserAtom, logoutAtom } from "../state/socialAtoms";
+import PwaInstallBanner from "./PwaInstallBanner";
+import {
+  bootstrapSessionAtom,
+  currentUserAtom,
+  logoutAtom,
+  trackPageVisitAtom,
+} from "../state/socialAtoms";
+
+let lastTrackedPathname = null;
 
 export default function Layout({ children }) {
   const user = useAtomValue(currentUserAtom);
   const logout = useSetAtom(logoutAtom);
   const bootstrapSession = useSetAtom(bootstrapSessionAtom);
+  const trackPageVisit = useSetAtom(trackPageVisitAtom);
+  const location = useLocation();
 
   useEffect(() => {
     bootstrapSession();
   }, [bootstrapSession]);
+
+  useEffect(() => {
+    if (lastTrackedPathname === location.pathname) {
+      return;
+    }
+
+    lastTrackedPathname = location.pathname;
+    trackPageVisit();
+  }, [location.pathname, trackPageVisit]);
 
   return (
     <div className="app-shell">
@@ -51,6 +70,7 @@ export default function Layout({ children }) {
           )}
         </nav>
       </header>
+      <PwaInstallBanner />
       <main className="page">{children}</main>
     </div>
   );

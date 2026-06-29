@@ -1,4 +1,5 @@
 import { atom } from "jotai";
+import { atomWithStorage } from "jotai/utils";
 import {
   apiFetch,
   clearAuthStorage,
@@ -52,14 +53,151 @@ const initialViewedUserState = {
   error: null,
 };
 
+const initialInstallPromptState = {
+  isVisible: false,
+  reason: null,
+};
+
+function isPagePromptThreshold(count) {
+  return count >= 3 && (count - 3) % 2 === 0;
+}
+
 export const authAtom = atom(initialAuthState);
 export const postsAtom = atom(initialPostsState);
 export const profileAtom = atom(initialProfileState);
 export const viewedUserAtom = atom(initialViewedUserState);
+export const installPromptEventAtom = atom(null);
+export const installPromptUiAtom = atom(initialInstallPromptState);
+export const pwaInstalledAtom = atomWithStorage("social_pwa_installed", false);
+export const pageVisitsAtom = atomWithStorage("social_page_visits", 0);
+export const lastPromptedPageVisitAtom = atomWithStorage("social_last_prompted_page_visit", 0);
+export const authoredPostCountsAtom = atomWithStorage("social_authored_post_counts", {});
+export const lastPromptedPostCountsAtom = atomWithStorage("social_last_prompted_post_counts", {});
 
 export const currentUserAtom = atom((get) => get(authAtom).user);
 export const jwtAtom = atom((get) => get(authAtom).jwt);
 export const authReadyAtom = atom((get) => get(authAtom).isReady);
+
+const installPromptEligibilityAtom = atom((get) => {
+  const promptEvent = get(installPromptEventAtom);
+  const isInstalled = get(pwaInstalledAtom);
+  const pageVisits = get(pageVisitsAtom);
+  const lastPromptedPageVisit = get(lastPromptedPageVisitAtom);
+  const currentUser = get(currentUserAtom);
+  const authoredPostCounts = get(authoredPostCountsAtom);
+  const lastPromptedPostCounts = get(lastPromptedPostCountsAtom);
+  const currentUserPostCount = currentUser ? authoredPostCounts[currentUser.id] || 0 : 0;
+  const lastPromptedPostCount = currentUser ? lastPromptedPostCounts[currentUser.id] || 0 : 0;
+
+  const pageEligible =
+    isPagePromptThreshold(pageVisits) && pageVisits > lastPromptedPageVisit;
+  const postEligible =
+    Boolean(currentUser) &&
+    currentUserPostCount > 0 &&
+    currentUserPostCount % 4 === 0 &&
+    currentUserPostCount > lastPromptedPostCount;
+
+  return {
+    canPrompt: Boolean(promptEvent) && !isInstalled,
+    pageEligible,
+    postEligible,
+    currentUserId: currentUser?.id || null,
+    pageVisits,
+    currentUserPostCount,
+  };
+});
+
+export const evaluateInstallPromptAtom = atom(null, (get, set) => {
+  const { canPrompt, pageEligible, postEligible, currentUserId, pageVisits, currentUserPostCount } =
+    get(installPromptEligibilityAtom);
+
+  if (!canPrompt) {
+    set(installPromptUiAtom, initialInstallPromptState);
+    return;
+  }
+
+  if (pageEligible) {
+    set(installPromptUiAtom, {
+      isVisible: true,
+      reason: "pages",
+    });
+    set(lastPromptedPageVisitAtom, pageVisits);
+    return;
+  }
+
+  if (postEligible && currentUserId) {
+    set(installPromptUiAtom, {
+      isVisible: true,
+      reason: "posts",
+    });
+    set(lastPromptedPostCountsAtom, (current) => ({
+      ...current,
+      [currentUserId]: currentUserPostCount,
+    }));
+    return;
+  }
+
+  set(installPromptUiAtom, (current) => (current.isVisible ? current : initialInstallPromptState));
+});
+
+export const registerInstallPromptEventAtom = atom(null, (get, set, promptEvent) => {
+  set(installPromptEventAtom, promptEvent);
+  set(pwaInstalledAtom, false);
+  set(evaluateInstallPromptAtom);
+});
+
+export const dismissInstallPromptAtom = atom(null, (get, set) => {
+  set(installPromptUiAtom, initialInstallPromptState);
+});
+
+export const markPwaInstalledAtom = atom(null, (get, set) => {
+  set(pwaInstalledAtom, true);
+  set(installPromptEventAtom, null);
+  set(installPromptUiAtom, initialInstallPromptState);
+});
+
+export const syncPwaInstalledAtom = atom(null, (get, set, isInstalled) => {
+  if (isInstalled) {
+    set(markPwaInstalledAtom);
+  }
+});
+
+export const trackPageVisitAtom = atom(null, (get, set) => {
+  set(pageVisitsAtom, (current) => current + 1);
+  set(evaluateInstallPromptAtom);
+});
+
+export const trackAuthoredPostAtom = atom(null, (get, set) => {
+  const currentUser = get(currentUserAtom);
+  if (!currentUser?.id) {
+    return;
+  }
+
+  set(authoredPostCountsAtom, (current) => ({
+    ...current,
+    [currentUser.id]: (current[currentUser.id] || 0) + 1,
+  }));
+  set(evaluateInstallPromptAtom);
+});
+
+export const installPwaAtom = atom(null, async (get, set) => {
+  const promptEvent = get(installPromptEventAtom);
+  if (!promptEvent) {
+    return;
+  }
+
+  await promptEvent.prompt();
+  const choiceResult = await promptEvent.userChoice;
+
+  set(installPromptUiAtom, initialInstallPromptState);
+
+  if (choiceResult?.outcome === "accepted") {
+    set(markPwaInstalledAtom);
+    return;
+  }
+
+  set(installPromptEventAtom, null);
+});
 
 export const bootstrapSessionAtom = atom(null, async (get, set) => {
   const { jwt, isReady } = get(authAtom);
@@ -220,6 +358,7 @@ export const createPostAtom = atom(null, async (get, set, text) => {
       items: sortPosts([nextPost, ...current.items.filter((item) => item.id !== nextPost.id)]),
       error: null,
     }));
+    set(trackAuthoredPostAtom);
   } catch (error) {
     set(postsAtom, (current) => ({
       ...current,
