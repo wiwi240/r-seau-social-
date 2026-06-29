@@ -1,18 +1,28 @@
-const API_URL = "http://localhost:1337";
+const API_URL =
+  import.meta.env.VITE_API_URL ||
+  "http://127.0.0.1:1337";
 
 export function buildUrl(path, query = "") {
   return `${API_URL}${path}${query}`;
 }
 
 export async function apiFetch(path, { method = "GET", token, body, query = "" } = {}) {
-  const response = await fetch(buildUrl(path, query), {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-    },
-    ...(body ? { body: JSON.stringify(body) } : {}),
-  });
+  let response;
+
+  try {
+    response = await fetch(buildUrl(path, query), {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      ...(body ? { body: JSON.stringify(body) } : {}),
+    });
+  } catch {
+    throw new Error(
+      "Impossible de joindre l'API. Vérifie que le serveur backend écoute bien sur le port 1337."
+    );
+  }
 
   const text = await response.text();
   let data = null;

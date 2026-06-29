@@ -3,7 +3,8 @@ import { URL } from "node:url";
 import { createToken, hashPassword, verifyPassword } from "./auth.js";
 import { readDb, writeDb } from "./db.js";
 
-const PORT = 1337;
+const PORT = Number(process.env.PORT || 1337);
+const HOST = process.env.HOST || "127.0.0.1";
 
 function sendJson(response, status, payload) {
   response.writeHead(status, {
@@ -365,7 +366,7 @@ const server = http.createServer(async (request, response) => {
       return;
     }
 
-    const url = new URL(request.url, `http://localhost:${PORT}`);
+    const url = new URL(request.url, `http://${HOST}:${PORT}`);
     const db = await readDb();
     const currentUser = getAuthenticatedUser(db, request);
 
@@ -441,6 +442,6 @@ const server = http.createServer(async (request, response) => {
   }
 });
 
-server.listen(PORT, () => {
-  console.log(`API server listening on http://localhost:${PORT}`);
+server.listen(PORT, HOST, () => {
+  console.log(`API server listening on http://${HOST}:${PORT}`);
 });

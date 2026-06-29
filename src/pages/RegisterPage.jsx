@@ -1,13 +1,13 @@
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useNavigate } from "react-router-dom";
 import AuthForm from "../components/AuthForm";
-import { registerUser } from "../features/auth/authSlice";
+import { authAtom, registerAtom } from "../state/socialAtoms";
 
 export default function RegisterPage() {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { jwt, status, error } = useSelector((state) => state.auth);
+  const { jwt, status, error } = useAtomValue(authAtom);
+  const register = useSetAtom(registerAtom);
 
   useEffect(() => {
     if (jwt) {
@@ -18,7 +18,7 @@ export default function RegisterPage() {
   return (
     <AuthForm
       mode="register"
-      onSubmit={(payload) => dispatch(registerUser(payload))}
+      onSubmit={register}
       loading={status === "loading"}
       error={error}
     />

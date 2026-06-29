@@ -26,6 +26,15 @@
       "passwordHash": "652d1d8614fad5a708058906531e5529:3838e63a60d6318422cb0a8e1425831b01fd0f0f9b9ffedd370fb037007e146ba73987a01f75d6ac600227c74eb74c0586b337dfa4537a87a020efe6069dc4db",
       "created_at": "2026-06-26T15:17:41.367Z",
       "updated_at": "2026-06-26T15:17:41.367Z"
+    },
+    {
+      "id": 4,
+      "username": "enzoulette",
+      "email": "enzoulette@gmail.com",
+      "description": "",
+      "passwordHash": "2dcd57a8c888465073789cb4f4b66b83:1cae5945b03f8ab58f714d875b745d01cc50271f76a6f2fd578ec81524b1067a1cd650aeb887e3e4b57db2e0c2b82556b1cc3be8c3bd7aafe7790e1f50c26891",
+      "created_at": "2026-06-29T10:05:41.776Z",
+      "updated_at": "2026-06-29T10:05:41.776Z"
     }
   ],
   "posts": [
@@ -33,25 +42,27 @@
       "id": 1,
       "text": "Premier post",
       "user": 1,
-      "like": 3,
+      "like": 4,
       "users_likes": [
         1,
         3,
-        2
+        2,
+        4
       ],
       "created_at": "2026-06-26T14:57:49.055Z",
-      "updated_at": "2026-06-26T15:24:45.868Z"
+      "updated_at": "2026-06-29T10:06:15.633Z"
     },
     {
       "id": 2,
       "text": "j'ai chaud",
       "user": 2,
-      "like": 1,
+      "like": 2,
       "users_likes": [
-        2
+        2,
+        4
       ],
       "created_at": "2026-06-26T15:12:46.816Z",
-      "updated_at": "2026-06-26T15:24:44.924Z"
+      "updated_at": "2026-06-29T10:06:14.290Z"
     }
   ],
   "sessions": [
@@ -74,6 +85,11 @@
       "token": "217cca60-7f31-4db6-a97e-441263768ccb",
       "userId": 2,
       "created_at": "2026-06-26T15:24:34.921Z"
+    },
+    {
+      "token": "f680a2b3-bbb4-44b7-9bcd-4023b29fa4a9",
+      "userId": 4,
+      "created_at": "2026-06-29T10:05:41.776Z"
     }
   ]
 }

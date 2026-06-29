@@ -1,19 +1,33 @@
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAtomValue, useSetAtom } from "jotai";
 import PostComposer from "../components/PostComposer";
 import PostList from "../components/PostList";
-import { createPost, deletePost, fetchPosts, toggleLike } from "../features/posts/postsSlice";
+import {
+  authAtom,
+  createPostAtom,
+  deletePostAtom,
+  fetchPostsAtom,
+  postsAtom,
+  toggleLikeAtom,
+} from "../state/socialAtoms";
 
 export default function HomePage() {
-  const dispatch = useDispatch();
-  const { jwt, user } = useSelector((state) => state.auth);
-  const { items, status, createStatus, error } = useSelector((state) => state.posts);
+  const { jwt, user, isReady } = useAtomValue(authAtom);
+  const { items, status, createStatus, error } = useAtomValue(postsAtom);
+  const fetchPosts = useSetAtom(fetchPostsAtom);
+  const createPost = useSetAtom(createPostAtom);
+  const deletePost = useSetAtom(deletePostAtom);
+  const toggleLike = useSetAtom(toggleLikeAtom);
 
   useEffect(() => {
-    if (jwt) {
-      dispatch(fetchPosts());
+    if (jwt && isReady) {
+      fetchPosts();
     }
-  }, [dispatch, jwt]);
+  }, [fetchPosts, isReady, jwt]);
+
+  if (!isReady) {
+    return <p className="card">Vérification de la session...</p>;
+  }
 
   if (!jwt) {
     return (
@@ -29,14 +43,14 @@ export default function HomePage() {
 
   return (
     <section className="section-stack">
-      <PostComposer onSubmit={(text) => dispatch(createPost(text))} loading={createStatus === "loading"} />
+      <PostComposer onSubmit={createPost} loading={createStatus === "loading"} />
       {status === "loading" ? <p className="card">Chargement des posts...</p> : null}
       {error ? <p className="card error-text">{error}</p> : null}
       <PostList
         posts={items}
         currentUserId={user?.id}
-        onDelete={(postId) => dispatch(deletePost(postId))}
-        onToggleLike={(post) => dispatch(toggleLike(post))}
+        onDelete={deletePost}
+        onToggleLike={toggleLike}
       />
     </section>
   );

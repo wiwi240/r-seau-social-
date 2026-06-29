@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { fetchMyProfile, updateMyProfile } from "../features/profile/profileSlice";
+import { useAtomValue, useSetAtom } from "jotai";
+import { authAtom, fetchMyProfileAtom, profileAtom, updateMyProfileAtom } from "../state/socialAtoms";
 
 export default function ProfilePage() {
-  const dispatch = useDispatch();
-  const authUser = useSelector((state) => state.auth.user);
-  const { data, status, updateStatus, error } = useSelector((state) => state.profile);
+  const { user: authUser } = useAtomValue(authAtom);
+  const { data, status, updateStatus, error } = useAtomValue(profileAtom);
+  const fetchMyProfile = useSetAtom(fetchMyProfileAtom);
+  const updateMyProfile = useSetAtom(updateMyProfileAtom);
   const [form, setForm] = useState({ username: "", description: "" });
 
   useEffect(() => {
-    dispatch(fetchMyProfile());
-  }, [dispatch]);
+    fetchMyProfile();
+  }, [fetchMyProfile]);
 
   useEffect(() => {
     if (data) {
@@ -23,12 +24,10 @@ export default function ProfilePage() {
 
   function handleSubmit(event) {
     event.preventDefault();
-    dispatch(
-      updateMyProfile({
-        username: form.username.trim(),
-        description: form.description.trim(),
-      })
-    );
+    updateMyProfile({
+      username: form.username.trim(),
+      description: form.description.trim(),
+    });
   }
 
   const profile = data || authUser;

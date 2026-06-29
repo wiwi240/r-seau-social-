@@ -1,22 +1,31 @@
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useParams } from "react-router-dom";
 import PostList from "../components/PostList";
-import { deletePost, toggleLike } from "../features/posts/postsSlice";
-import { clearViewedUser, fetchUserByUsername } from "../features/users/usersSlice";
+import {
+  authAtom,
+  clearViewedUserAtom,
+  deletePostAtom,
+  fetchUserByUsernameAtom,
+  toggleLikeAtom,
+  viewedUserAtom,
+} from "../state/socialAtoms";
 
 export default function UserProfilePage() {
   const { username } = useParams();
-  const dispatch = useDispatch();
-  const currentUserId = useSelector((state) => state.auth.user?.id);
-  const { profile, posts, status, error } = useSelector((state) => state.users);
+  const currentUserId = useAtomValue(authAtom).user?.id;
+  const { profile, posts, status, error } = useAtomValue(viewedUserAtom);
+  const fetchUserByUsername = useSetAtom(fetchUserByUsernameAtom);
+  const clearViewedUser = useSetAtom(clearViewedUserAtom);
+  const deletePost = useSetAtom(deletePostAtom);
+  const toggleLike = useSetAtom(toggleLikeAtom);
 
   useEffect(() => {
-    dispatch(fetchUserByUsername(username));
+    fetchUserByUsername(username);
     return () => {
-      dispatch(clearViewedUser());
+      clearViewedUser();
     };
-  }, [dispatch, username]);
+  }, [clearViewedUser, fetchUserByUsername, username]);
 
   return (
     <section className="section-stack">
@@ -33,8 +42,8 @@ export default function UserProfilePage() {
       <PostList
         posts={posts}
         currentUserId={currentUserId}
-        onDelete={(postId) => dispatch(deletePost(postId))}
-        onToggleLike={(post) => dispatch(toggleLike(post))}
+        onDelete={deletePost}
+        onToggleLike={toggleLike}
       />
     </section>
   );

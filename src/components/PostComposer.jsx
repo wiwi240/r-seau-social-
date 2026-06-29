@@ -3,15 +3,19 @@ import { useState } from "react";
 export default function PostComposer({ onSubmit, loading }) {
   const [text, setText] = useState("");
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const value = text.trim();
     if (!value) {
       return;
     }
 
-    onSubmit(value);
-    setText("");
+    try {
+      await onSubmit(value);
+      setText("");
+    } catch {
+      // L'erreur est deja geree par le state global, on conserve juste le brouillon.
+    }
   }
 
   return (

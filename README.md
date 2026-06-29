@@ -8,8 +8,7 @@ A small social network application built with React on the frontend and a custom
 
 - React 18
 - React DOM
-- Redux Toolkit
-- React Redux
+- Jotai
 - React Router DOM
 - Vite
 
@@ -42,11 +41,10 @@ A small social network application built with React on the frontend and a custom
 │   ├── db.json
 │   └── index.js
 ├── src
-│   ├── app
 │   ├── components
-│   ├── features
 │   ├── lib
 │   ├── pages
+│   ├── state
 │   ├── App.jsx
 │   ├── main.jsx
 │   └── styles.css
@@ -82,6 +80,17 @@ npm run dev:api
 
 Starts the backend with file watching on port `1337`.
 
+By default, the backend now listens on:
+
+- host: `127.0.0.1`
+- port: `1337`
+
+You can override them with:
+
+```bash
+HOST=127.0.0.1 PORT=1337 npm run dev:api
+```
+
 ### Run frontend and backend together
 
 ```bash
@@ -92,8 +101,13 @@ This is the main development command.
 
 It starts:
 
-- the backend on `http://localhost:1337`
+- the backend on `http://127.0.0.1:1337`
 - the frontend on the Vite dev server, usually `http://localhost:5173`
+
+If port `1337` is already in use, `dev:all` now checks whether the API is really responding:
+
+- if the API is healthy, it keeps the existing backend process and starts the frontend
+- if the port is occupied by a dead or unrelated process, the command stops with an explicit error
 
 ### Build the frontend
 
@@ -140,7 +154,18 @@ Important:
 ## Local URLs
 
 - Frontend: `http://localhost:5173`
-- Backend: `http://localhost:1337`
+- Backend: `http://127.0.0.1:1337`
+
+## Verify local API
+
+After starting the backend, these checks should work:
+
+```bash
+curl http://127.0.0.1:1337/api/users/me
+curl -X POST http://127.0.0.1:1337/api/auth/local
+```
+
+The first command may return `401` if you are not authenticated. That is acceptable: it proves the API is reachable.
 
 ## API Routes
 
@@ -175,6 +200,7 @@ This includes:
 
 ## Notes
 
+- this project uses Jotai for global state
 - this project does not use Strapi
 - authentication is token-based
 - this is an MVP-style implementation with local file persistence

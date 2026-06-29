@@ -1,13 +1,13 @@
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useNavigate } from "react-router-dom";
 import AuthForm from "../components/AuthForm";
-import { loginUser } from "../features/auth/authSlice";
+import { authAtom, loginAtom } from "../state/socialAtoms";
 
 export default function LoginPage() {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { jwt, status, error } = useSelector((state) => state.auth);
+  const { jwt, status, error } = useAtomValue(authAtom);
+  const login = useSetAtom(loginAtom);
 
   useEffect(() => {
     if (jwt) {
@@ -18,7 +18,7 @@ export default function LoginPage() {
   return (
     <AuthForm
       mode="login"
-      onSubmit={(payload) => dispatch(loginUser(payload))}
+      onSubmit={login}
       loading={status === "loading"}
       error={error}
     />

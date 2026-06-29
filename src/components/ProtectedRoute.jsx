@@ -1,7 +1,13 @@
 import { Navigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useAtomValue } from "jotai";
+import { authAtom } from "../state/socialAtoms";
 
 export default function ProtectedRoute({ children }) {
-  const jwt = useSelector((state) => state.auth.jwt);
+  const { jwt, isReady } = useAtomValue(authAtom);
+
+  if (!isReady) {
+    return <p className="card">Vérification de la session...</p>;
+  }
+
   return jwt ? children : <Navigate to="/login" replace />;
 }

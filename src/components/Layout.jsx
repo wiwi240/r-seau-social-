@@ -1,10 +1,16 @@
+import { useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import { logout, logoutUser } from "../features/auth/authSlice";
+import { useAtomValue, useSetAtom } from "jotai";
+import { bootstrapSessionAtom, currentUserAtom, logoutAtom } from "../state/socialAtoms";
 
 export default function Layout({ children }) {
-  const dispatch = useDispatch();
-  const user = useSelector((state) => state.auth.user);
+  const user = useAtomValue(currentUserAtom);
+  const logout = useSetAtom(logoutAtom);
+  const bootstrapSession = useSetAtom(bootstrapSessionAtom);
+
+  useEffect(() => {
+    bootstrapSession();
+  }, [bootstrapSession]);
 
   return (
     <div className="app-shell">
@@ -13,7 +19,7 @@ export default function Layout({ children }) {
           <Link to="/" className="brand">
             My Social Network
           </Link>
-          <span className="brand-tagline">Micro social app built with React and Redux</span>
+          <span className="brand-tagline">Micro social app built with React and Jotai</span>
         </div>
         <nav className="nav">
           {user ? (
@@ -28,11 +34,7 @@ export default function Layout({ children }) {
               <button
                 type="button"
                 className="secondary-button"
-                onClick={() => {
-                  dispatch(logoutUser()).unwrap().catch(() => {
-                    dispatch(logout());
-                  });
-                }}
+                onClick={() => logout()}
               >
                 Log out
               </button>
