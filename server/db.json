@@ -90,6 +90,11 @@
       "token": "f680a2b3-bbb4-44b7-9bcd-4023b29fa4a9",
       "userId": 4,
       "created_at": "2026-06-29T10:05:41.776Z"
+    },
+    {
+      "token": "2f4e9174-e301-4419-99f8-d652f0e5ddb0",
+      "userId": 2,
+      "created_at": "2026-06-29T10:46:22.130Z"
     }
   ]
 }
