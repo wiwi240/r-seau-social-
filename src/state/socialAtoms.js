@@ -98,7 +98,8 @@ const installPromptEligibilityAtom = atom((get) => {
     currentUserPostCount > lastPromptedPostCount;
 
   return {
-    canPrompt: Boolean(promptEvent) && !isInstalled,
+    canPrompt: Boolean(promptEvent),
+    canShowPrompt: !isInstalled,
     pageEligible,
     postEligible,
     currentUserId: currentUser?.id || null,
@@ -108,10 +109,16 @@ const installPromptEligibilityAtom = atom((get) => {
 });
 
 export const evaluateInstallPromptAtom = atom(null, (get, set) => {
-  const { canPrompt, pageEligible, postEligible, currentUserId, pageVisits, currentUserPostCount } =
-    get(installPromptEligibilityAtom);
+  const {
+    canShowPrompt,
+    pageEligible,
+    postEligible,
+    currentUserId,
+    pageVisits,
+    currentUserPostCount,
+  } = get(installPromptEligibilityAtom);
 
-  if (!canPrompt) {
+  if (!canShowPrompt) {
     set(installPromptUiAtom, initialInstallPromptState);
     return;
   }
@@ -198,6 +205,8 @@ export const installPwaAtom = atom(null, async (get, set) => {
 
   set(installPromptEventAtom, null);
 });
+
+export const installPromptAvailableAtom = atom((get) => Boolean(get(installPromptEventAtom)));
 
 export const bootstrapSessionAtom = atom(null, async (get, set) => {
   const { jwt, isReady } = get(authAtom);

@@ -1,6 +1,7 @@
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   dismissInstallPromptAtom,
+  installPromptAvailableAtom,
   installPromptUiAtom,
   installPwaAtom,
 } from "../state/socialAtoms";
@@ -18,6 +19,7 @@ const promptCopy = {
 
 export default function PwaInstallBanner() {
   const { isVisible, reason } = useAtomValue(installPromptUiAtom);
+  const installPromptAvailable = useAtomValue(installPromptAvailableAtom);
   const dismissInstallPrompt = useSetAtom(dismissInstallPromptAtom);
   const installPwa = useSetAtom(installPwaAtom);
 
@@ -32,13 +34,21 @@ export default function PwaInstallBanner() {
       <div>
         <p className="install-banner-title">{copy.title}</p>
         <p className="install-banner-description">{copy.description}</p>
+        {!installPromptAvailable ? (
+          <p className="install-banner-help">
+            Le raccourci n&apos;est pas proposé automatiquement pour le moment. Tu peux l&apos;installer
+            plus tard depuis le menu de ton navigateur.
+          </p>
+        ) : null}
       </div>
       <div className="install-banner-actions">
-        <button type="button" className="primary-button" onClick={() => installPwa()}>
-          Installer
-        </button>
+        {installPromptAvailable ? (
+          <button type="button" className="primary-button" onClick={() => installPwa()}>
+            Installer
+          </button>
+        ) : null}
         <button type="button" className="secondary-button" onClick={() => dismissInstallPrompt()}>
-          Plus tard
+          {installPromptAvailable ? "Plus tard" : "Fermer"}
         </button>
       </div>
     </aside>
